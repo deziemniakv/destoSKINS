@@ -61,7 +61,6 @@ const sellall: Command = {
         return;
       }
 
-      // Preview what will be sold (read-only check)
       const preview = user.inventory.filter((item) => {
         const idx = RARITY_ORDER.indexOf(item.rarity as Rarity);
         return idx !== -1 && idx < belowIndex;
@@ -83,7 +82,6 @@ const sellall: Command = {
 
       const previewValue = preview.reduce((s, i) => s + i.value, 0);
 
-      // Confirmation
       const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId("sellall_confirm")
@@ -146,7 +144,6 @@ const sellall: Command = {
           return;
         }
 
-        // Execute the sell in SQLite
         const { items: sold, totalValue } =
           UserRepository.removeItemsBelowRarity(
             interaction.user.id,
