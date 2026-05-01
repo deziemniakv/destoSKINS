@@ -10,7 +10,6 @@ export default {
     log.info(`✅ Bot is online as ${client.user.tag}`);
     log.info(`📊 Serving ${client.guilds.cache.size} guilds`);
 
-    // Set bot activity
     client.user.setPresence({
       activities: [
         {
@@ -21,7 +20,6 @@ export default {
       status: "online",
     });
 
-    // Rotate status every 5 minutes
     setInterval(() => {
       const statuses = [
         { name: "CS2 Cases | /cases", type: ActivityType.Playing },
