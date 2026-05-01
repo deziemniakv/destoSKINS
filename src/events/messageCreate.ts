@@ -1,7 +1,6 @@
 import { Events, Message } from "discord.js";
 import { log } from "../utils/logger";
 
-// ─── Anti-Spam Tracking ───────────────────────────────────────────────────────
 
 const spamTracker = new Map<
   string,
@@ -17,7 +16,6 @@ export default {
     if (message.author.bot) return;
     if (!message.guild) return;
 
-    // Basic anti-spam monitoring
     const userId = message.author.id;
     const now = Date.now();
     const tracker = spamTracker.get(userId) ?? {
@@ -43,7 +41,6 @@ export default {
       );
     }
 
-    // Auto-cleanup after window
     setTimeout(() => spamTracker.delete(userId), SPAM_WINDOW_MS * 2);
   },
 };
