@@ -1,7 +1,5 @@
 import { Rarity, WearLevel } from "../types";
 
-// ─── Rarity Colors ────────────────────────────────────────────────────────────
-
 export const RARITY_COLORS: Record<Rarity, number> = {
   "Consumer Grade": 0xb0c3d9,   // Light gray-blue
   "Industrial Grade": 0x5e98d9, // Blue
@@ -12,7 +10,6 @@ export const RARITY_COLORS: Record<Rarity, number> = {
   "Contraband": 0xe4ae39,       // Gold/Orange
 };
 
-// ─── Rarity Emojis ────────────────────────────────────────────────────────────
 
 export const RARITY_EMOJIS: Record<Rarity, string> = {
   "Consumer Grade": "⬜",
@@ -24,7 +21,6 @@ export const RARITY_EMOJIS: Record<Rarity, string> = {
   "Contraband": "🌟",
 };
 
-// ─── Rarity Labels ────────────────────────────────────────────────────────────
 
 export const RARITY_ORDER: Rarity[] = [
   "Consumer Grade",
@@ -35,8 +31,6 @@ export const RARITY_ORDER: Rarity[] = [
   "Covert",
   "Contraband",
 ];
-
-// ─── Wear Level Multipliers ───────────────────────────────────────────────────
 
 export const WEAR_MULTIPLIERS: Record<WearLevel, number> = {
   "Factory New": 1.0,
@@ -54,7 +48,6 @@ export const WEAR_CHANCES: { wear: WearLevel; chance: number }[] = [
   { wear: "Battle-Scarred", chance: 16 },
 ];
 
-// ─── Helper Functions ─────────────────────────────────────────────────────────
 
 export function getRarityColor(rarity: Rarity): number {
   return RARITY_COLORS[rarity] ?? 0x99aab5;
