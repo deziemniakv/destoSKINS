@@ -1,0 +1,28 @@
+{
+  "name": "cs2-case-bot",
+  "version": "1.0.0",
+  "description": "CS2-style Discord case opening bot with virtual currency",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "deploy": "ts-node src/deploy.ts",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "winston": "^3.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "@types/better-sqlite3": "^7.6.8",
+    "typescript": "^5.4.2",
+    "ts-node": "^10.9.2",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "eslint": "^8.57.0"
+  }
+}
