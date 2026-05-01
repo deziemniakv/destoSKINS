@@ -1,7 +1,6 @@
 import { Collection } from "discord.js";
 import { BotClient } from "../types";
 
-// ─── Cooldown Manager ─────────────────────────────────────────────────────────
 
 export function checkCooldown(
   client: BotClient,
@@ -28,7 +27,6 @@ export function checkCooldown(
 
   timestamps.set(userId, now);
 
-  // Clean up old timestamps to prevent memory leaks
   setTimeout(() => timestamps.delete(userId), cooldownMs);
 
   return { onCooldown: false, remaining: 0 };
@@ -42,7 +40,6 @@ export function formatCooldown(seconds: number): string {
   return `${h}h ${m}m`;
 }
 
-// ─── Daily Cooldown Check ─────────────────────────────────────────────────────
 
 export function checkDailyCooldown(lastDaily: Date | null): {
   canClaim: boolean;
@@ -52,7 +49,7 @@ export function checkDailyCooldown(lastDaily: Date | null): {
 
   const now = Date.now();
   const lastTime = lastDaily.getTime();
-  const cooldown = 24 * 60 * 60 * 1000; // 24 hours in ms
+  const cooldown = 24 * 60 * 60 * 1000;
   const elapsed = now - lastTime;
 
   if (elapsed >= cooldown) {
