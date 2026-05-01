@@ -20,8 +20,6 @@ import {
 import { buildErrorEmbed } from "../utils/embed";
 import { log } from "../utils/logger";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type BattleMode = "normal" | "underdog" | "terminal" | "crazy_terminal";
 type BattleSize = 2 | 3 | 4;
 
@@ -29,7 +27,7 @@ interface RoundResult {
   roundNumber:  number;
   caseId:       string;
   caseName:     string;
-  drops:        Map<string, InventoryItem>; // participantId → item dropped
+  drops:        Map<string, InventoryItem>;
 }
 
 interface BattleParticipant {
@@ -37,14 +35,14 @@ interface BattleParticipant {
   username:      string;
   avatarUrl:     string;
   isBot:         boolean;
-  allItems:      InventoryItem[]; // every item collected across all rounds
-  totalValue:    number;          // sum of all items
-  roundValues:   number[];        // per-round value (index = round)
+  allItems:      InventoryItem[]; 
+  totalValue:    number;          
+  roundValues:   number[];        
 }
 
 interface ActiveBattle {
   hostId:       string;
-  caseIds:      string[];         // ordered list of cases (1 per round)
+  caseIds:      string[];         
   mode:         BattleMode;
   size:         BattleSize;
   participants: BattleParticipant[];
@@ -52,8 +50,6 @@ interface ActiveBattle {
   status:       "waiting" | "running" | "finished";
   createdAt:    number;
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 const BOT_NAMES = [
   "CaseMaster_Bot",
@@ -93,8 +89,6 @@ const MODE_INFO: Record<
       "The **FIRST case** decides the winner immediately. The battle continues for show, but the outcome is already sealed from round 1.",
   },
 };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function randomBotName(): string {
   return BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] ?? "Bot_Player";
@@ -143,8 +137,6 @@ function getTotalCost(battle: ActiveBattle): number {
   }, 0);
 }
 
-// ─── Determine Winner ─────────────────────────────────────────────────────────
-
 function determineWinner(
   battle: ActiveBattle,
   mode: BattleMode
@@ -152,14 +144,12 @@ function determineWinner(
   let scored: BattleParticipant[];
 
   if (mode === "terminal") {
-    // Only last round values count
     scored = [...battle.participants].sort(
       (a, b) =>
         (b.roundValues[b.roundValues.length - 1] ?? 0) -
         (a.roundValues[a.roundValues.length - 1] ?? 0)
     );
   } else if (mode === "crazy_terminal") {
-    // Only first round values count
     scored = [...battle.participants].sort(
       (a, b) => (b.roundValues[0] ?? 0) - (a.roundValues[0] ?? 0)
     );
@@ -168,13 +158,10 @@ function determineWinner(
       (a, b) => a.totalValue - b.totalValue
     );
   } else {
-    // normal
     scored = [...battle.participants].sort(
       (a, b) => b.totalValue - a.totalValue
     );
   }
-
-  // Tiebreaker — random among tied first-place
   const topScore =
     mode === "terminal"
       ? (scored[0]?.roundValues[scored[0].roundValues.length - 1] ?? 0)
@@ -194,9 +181,6 @@ function determineWinner(
 
   return tied[Math.floor(Math.random() * tied.length)] ?? scored[0]!;
 }
-
-// ─── Embeds ───────────────────────────────────────────────────────────────────
-
 function buildWaitingEmbed(
   battle: ActiveBattle,
   cases: Case[]
@@ -271,7 +255,7 @@ function buildRoundEmbed(
   caseData: Case,
   roundNumber: number,
   totalRounds: number,
-  deciderRound: number | null,  // which round decides (null = all)
+  deciderRound: number | null,
   isDecider: boolean
 ): EmbedBuilder {
   const modeInfo = MODE_INFO[battle.mode];
@@ -312,7 +296,7 @@ function buildRoundResultEmbed(
   roundResult: RoundResult,
   roundNumber: number,
   totalRounds: number,
-  provisionalWinner: BattleParticipant | null, // set when winner is known early
+  provisionalWinner: BattleParticipant | null,
   mode: BattleMode
 ): EmbedBuilder {
   const modeInfo = MODE_INFO[mode];
@@ -335,8 +319,6 @@ function buildRoundResultEmbed(
     const emoji   = item ? getRarityEmoji(item.rarity) : "❓";
     const valStr  = item ? formatCurrency(item.value) : "No drop";
     const nameStr = item ? `**${item.name}** (${item.wear})` : "No item";
-
-    // Highlight winner in crazy terminal (first round)
     const isWinner =
       provisionalWinner !== null && p.userId === provisionalWinner.userId;
 
@@ -390,8 +372,6 @@ function buildFinalResultEmbed(
 ): EmbedBuilder {
   const modeInfo    = MODE_INFO[battle.mode];
   const totalRounds = cases.length;
-
-  // Per-round breakdown per player
   const standings = battle.participants
     .map((p) => {
       const roundBreakdown = p.roundValues
@@ -421,8 +401,6 @@ function buildFinalResultEmbed(
       );
     })
     .join("\n\n");
-
-  // Prize pool
   const prizeLines = allItems
     .map(
       (item) =>
@@ -431,14 +409,10 @@ function buildFinalResultEmbed(
     .join("\n");
 
   const totalPrizeValue = allItems.reduce((s, i) => s + i.value, 0);
-
-  // Best item for embed image
   const bestItem = allItems.reduce(
     (best, item) => (item.value > (best?.value ?? 0) ? item : best),
     allItems[0]
   );
-
-  // Mode-specific winner explanation
   let winReason = "";
   if (battle.mode === "terminal") {
     const lastVal =
@@ -489,9 +463,6 @@ function buildFinalResultEmbed(
     })
     .setTimestamp();
 }
-
-// ─── Core Battle Runner ───────────────────────────────────────────────────────
-
 async function runBattle(
   battle: ActiveBattle,
   cases: Case[],
@@ -502,10 +473,7 @@ async function runBattle(
   const totalRounds   = cases.length;
   const allDroppedItems: InventoryItem[] = [];
 
-  // Winner known after round 1 in crazy_terminal
   let crazyTerminalWinner: BattleParticipant | null = null;
-
-  // ── Round Loop ───────────────────────────────────────────────────────────────
   for (let roundIndex = 0; roundIndex < totalRounds; roundIndex++) {
     const caseData    = cases[roundIndex]!;
     const roundNumber = roundIndex + 1;
@@ -513,7 +481,6 @@ async function runBattle(
       (battle.mode === "terminal"       && roundNumber === totalRounds) ||
       (battle.mode === "crazy_terminal" && roundNumber === 1);
 
-    // Show rolling animation for this round
     await editTarget.edit({
       embeds: [
         buildRoundEmbed(
@@ -530,7 +497,6 @@ async function runBattle(
 
     await new Promise((res) => setTimeout(res, 2500));
 
-    // Roll one item per participant for this round
     const roundResult: RoundResult = {
       roundNumber,
       caseId:   caseData.id,
@@ -554,12 +520,10 @@ async function runBattle(
 
     battle.roundResults.push(roundResult);
 
-    // Determine provisional winner after round 1 in crazy_terminal
     if (battle.mode === "crazy_terminal" && roundNumber === 1) {
       crazyTerminalWinner = determineWinner(battle, "crazy_terminal");
     }
 
-    // Show round results
     await editTarget.edit({
       embeds: [
         buildRoundResultEmbed(
@@ -574,24 +538,20 @@ async function runBattle(
       ],
     });
 
-    // Pause between rounds (skip pause after last round)
     if (roundIndex < totalRounds - 1) {
       await new Promise((res) => setTimeout(res, 3000));
     }
   }
 
-  // ── Determine Final Winner ───────────────────────────────────────────────────
   await new Promise((res) => setTimeout(res, 2000));
 
   const winner = determineWinner(battle, battle.mode);
 
-  // ── Award All Items to Winner ────────────────────────────────────────────────
   if (!winner.isBot && allDroppedItems.length > 0) {
     for (const item of allDroppedItems) {
       UserRepository.addInventoryItem(winner.userId, item);
     }
 
-    // XP: base 25 per player × number of rounds
     UserRepository.addXP(winner.userId, 25 * battle.size * totalRounds);
 
     log.info(
@@ -602,7 +562,6 @@ async function runBattle(
     );
   }
 
-  // ── Show Final Result ────────────────────────────────────────────────────────
   await editTarget.edit({
     embeds:     [buildFinalResultEmbed(battle, cases, winner, allDroppedItems)],
     components: [],
@@ -611,8 +570,6 @@ async function runBattle(
   activeBattles.delete(battle.hostId);
   battle.status = "finished";
 }
-
-// ─── Build Waiting Buttons ────────────────────────────────────────────────────
 
 function buildWaitingButtons(
   hostId: string,
@@ -638,11 +595,7 @@ function buildWaitingButtons(
   );
 }
 
-// ─── In-Memory Store ──────────────────────────────────────────────────────────
-
 const activeBattles = new Collection<string, ActiveBattle>();
-
-// ─── Command ──────────────────────────────────────────────────────────────────
 
 const casebattle: Command = {
   data: new SlashCommandBuilder()
@@ -650,7 +603,6 @@ const casebattle: Command = {
     .setDescription(
       "Start a multi-round case battle. Winner takes ALL skins!"
     )
-    // ── Required ──────────────────────────────────────────────────────────────
     .addStringOption((opt) =>
       opt
         .setName("mode")
@@ -676,7 +628,6 @@ const casebattle: Command = {
           { name: "1v1v1v1   (4 players)", value: 4 }
         )
     )
-    // ── Case slots (1 required + 4 optional = up to 5 rounds) ────────────────
     .addStringOption((opt) =>
       opt
         .setName("case1")
@@ -748,8 +699,6 @@ const casebattle: Command = {
       const hostId = interaction.user.id;
       const mode   = interaction.options.getString("mode", true) as BattleMode;
       const size   = interaction.options.getInteger("size", true) as BattleSize;
-
-      // ── Collect case IDs (1 required + up to 4 optional) ──────────────────
       const rawCaseIds = [
         interaction.options.getString("case1", true),
         interaction.options.getString("case2"),
@@ -758,7 +707,6 @@ const casebattle: Command = {
         interaction.options.getString("case5"),
       ].filter((id): id is string => id !== null);
 
-      // Validate all case IDs
       const resolvedCases: Case[] = [];
       for (const id of rawCaseIds) {
         const c = getCaseById(id);
@@ -771,7 +719,6 @@ const casebattle: Command = {
         resolvedCases.push(c);
       }
 
-      // Terminal needs at least 2 cases (otherwise last = first = pointless)
       if (
         (mode === "terminal" || mode === "crazy_terminal") &&
         resolvedCases.length < 2
@@ -787,7 +734,6 @@ const casebattle: Command = {
         return;
       }
 
-      // ── Check for existing battle ──────────────────────────────────────────
       if (activeBattles.has(hostId)) {
         await interaction.editReply({
           embeds: [buildErrorEmbed("You already have an active battle!")],
@@ -795,10 +741,8 @@ const casebattle: Command = {
         return;
       }
 
-      // ── Total cost per player ──────────────────────────────────────────────
       const totalCost = resolvedCases.reduce((s, c) => s + c.price, 0);
 
-      // ── Check host balance ─────────────────────────────────────────────────
       const hostUser = UserRepository.findOrCreate(
         hostId,
         interaction.user.username
@@ -820,7 +764,6 @@ const casebattle: Command = {
         return;
       }
 
-      // ── Deduct host entry fee ──────────────────────────────────────────────
       UserRepository.updateBalance(
         hostId,
         hostUser.balance - totalCost,
@@ -828,7 +771,6 @@ const casebattle: Command = {
         hostUser.totalSpent + totalCost
       );
 
-      // ── Create battle ──────────────────────────────────────────────────────
       const battle: ActiveBattle = {
         hostId,
         caseIds:      resolvedCases.map((c) => c.id),
@@ -852,13 +794,11 @@ const casebattle: Command = {
 
       activeBattles.set(hostId, battle);
 
-      // ── Send waiting room ──────────────────────────────────────────────────
       const waitMsg = await interaction.editReply({
         embeds:     [buildWaitingEmbed(battle, resolvedCases)],
         components: [buildWaitingButtons(hostId, totalCost, battle)],
       });
 
-      // ── Collector (60s) ────────────────────────────────────────────────────
       const collector = waitMsg.createMessageComponentCollector({
         componentType: ComponentType.Button,
         time:          60_000,
@@ -874,7 +814,6 @@ const casebattle: Command = {
           return;
         }
 
-        // ── CANCEL ──────────────────────────────────────────────────────────
         if (btn.customId === `battle_cancel_${hostId}`) {
           if (btn.user.id !== hostId) {
             await btn.reply({
@@ -900,7 +839,6 @@ const casebattle: Command = {
           return;
         }
 
-        // ── FILL BOTS & START ────────────────────────────────────────────────
         if (btn.customId === `battle_bots_${hostId}`) {
           if (btn.user.id !== hostId) {
             await btn.reply({
@@ -922,7 +860,6 @@ const casebattle: Command = {
           return;
         }
 
-        // ── JOIN ─────────────────────────────────────────────────────────────
         if (btn.customId === `battle_join_${hostId}`) {
           if (btn.user.id === hostId) {
             await btn.reply({
@@ -955,7 +892,6 @@ const casebattle: Command = {
             return;
           }
 
-          // Deduct joiner fee
           UserRepository.updateBalance(
             btn.user.id,
             joiner.balance - totalCost,
@@ -973,7 +909,6 @@ const casebattle: Command = {
             roundValues: [],
           });
 
-          // Full — start battle
           if (current.participants.length >= current.size) {
             collector.stop("full");
 
@@ -986,7 +921,6 @@ const casebattle: Command = {
             return;
           }
 
-          // Not full — refresh waiting room
           await btn.update({
             embeds: [buildWaitingEmbed(current, resolvedCases)],
             components: [buildWaitingButtons(hostId, totalCost, current)],
@@ -995,7 +929,6 @@ const casebattle: Command = {
         }
       });
 
-      // ── Timeout ────────────────────────────────────────────────────────────
       collector.on("end", async (_, reason) => {
         if (["cancelled", "full", "bots_filled"].includes(reason)) return;
 
@@ -1059,7 +992,6 @@ const casebattle: Command = {
             await runBattle(current, resolvedCases, interaction, timeoutMsg);
           }
         } catch {
-          // Final timeout — auto cancel
           const stale = activeBattles.get(hostId);
           if (stale) {
             refundParticipants(stale.participants, totalCost);
