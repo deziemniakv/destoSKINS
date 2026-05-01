@@ -40,12 +40,10 @@ const daily: Command = {
         return;
       }
 
-      // Calculate reward
       const reward = DAILY_BASE + (user.level - 1) * DAILY_LEVEL_BONUS;
       const newBalance     = user.balance + reward;
       const newTotalEarned = user.totalEarned + reward;
 
-      // Persist changes
       UserRepository.updateBalance(
         interaction.user.id,
         newBalance,
@@ -53,7 +51,6 @@ const daily: Command = {
       );
       UserRepository.setLastDaily(interaction.user.id);
 
-      // Grant XP
       const { leveledUp, newLevel } = UserRepository.addXP(
         interaction.user.id,
         XP_REWARD
