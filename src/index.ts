@@ -11,7 +11,6 @@ import { BotClient, Command } from "./types";
 import { log } from "./utils/logger";
 import { initDatabase, closeDatabase } from "./models/Database";
 
-// ─── Load Environment ─────────────────────────────────────────────────────────
 
 dotenv.config();
 
@@ -22,13 +21,11 @@ if (!DISCORD_TOKEN) {
   process.exit(1);
 }
 
-// ─── Ensure Log Directory ─────────────────────────────────────────────────────
 
 if (!fs.existsSync("logs")) {
   fs.mkdirSync("logs", { recursive: true });
 }
 
-// ─── Create Client ────────────────────────────────────────────────────────────
 
 const client = new Client({
   intents: [
@@ -43,7 +40,6 @@ const client = new Client({
 client.commands = new Collection<string, Command>();
 client.cooldowns = new Collection<string, Collection<string, number>>();
 
-// ─── Load Commands ────────────────────────────────────────────────────────────
 
 async function loadCommands(): Promise<void> {
   const commandsPath = path.join(__dirname, "commands");
@@ -69,7 +65,6 @@ async function loadCommands(): Promise<void> {
   }
 }
 
-// ─── Load Events ──────────────────────────────────────────────────────────────
 
 async function loadEvents(): Promise<void> {
   const eventsPath = path.join(__dirname, "events");
@@ -100,7 +95,6 @@ async function loadEvents(): Promise<void> {
   }
 }
 
-// ─── Graceful Shutdown ────────────────────────────────────────────────────────
 
 function setupGracefulShutdown(): void {
   const shutdown = async (signal: string) => {
@@ -124,14 +118,12 @@ function setupGracefulShutdown(): void {
   });
 }
 
-// ─── Bootstrap ────────────────────────────────────────────────────────────────
 
 async function bootstrap(): Promise<void> {
   log.info("🚀 Starting CS2 Case Bot...");
 
   setupGracefulShutdown();
 
-  // Initialize SQLite (synchronous, no await needed)
   initDatabase();
 
   await loadCommands();
