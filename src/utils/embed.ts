@@ -2,7 +2,6 @@ import { EmbedBuilder } from "discord.js";
 import { InventoryItem, Case } from "../types";
 import { getRarityColor, getRarityEmoji, getRarityGlow, formatCurrency } from "./rarity";
 
-// ─── Case Opening Embed ───────────────────────────────────────────────────────
 
 export function buildOpeningEmbed(
   caseData: Case,
@@ -61,8 +60,6 @@ export function buildOpeningEmbed(
     .setTimestamp();
 }
 
-// ─── Spinning Embed (Animated-Style) ─────────────────────────────────────────
-
 export function buildSpinningEmbed(caseData: Case): EmbedBuilder {
   const spinFrames = [
     "◀️ 🎰🎰🎰🎰🎰 ▶️",
@@ -80,7 +77,6 @@ export function buildSpinningEmbed(caseData: Case): EmbedBuilder {
     .setFooter({ text: "Please wait..." });
 }
 
-// ─── Balance Embed ────────────────────────────────────────────────────────────
 
 export function buildBalanceEmbed(
   username: string,
@@ -114,7 +110,6 @@ export function buildBalanceEmbed(
     .setTimestamp();
 }
 
-// ─── Error Embed ──────────────────────────────────────────────────────────────
 
 export function buildErrorEmbed(message: string): EmbedBuilder {
   return new EmbedBuilder()
@@ -124,7 +119,6 @@ export function buildErrorEmbed(message: string): EmbedBuilder {
     .setTimestamp();
 }
 
-// ─── Success Embed ────────────────────────────────────────────────────────────
 
 export function buildSuccessEmbed(title: string, description: string): EmbedBuilder {
   return new EmbedBuilder()
@@ -134,7 +128,6 @@ export function buildSuccessEmbed(title: string, description: string): EmbedBuil
     .setTimestamp();
 }
 
-// ─── Cooldown Embed ───────────────────────────────────────────────────────────
 
 export function buildCooldownEmbed(remaining: string): EmbedBuilder {
   return new EmbedBuilder()
@@ -146,7 +139,6 @@ export function buildCooldownEmbed(remaining: string): EmbedBuilder {
     .setTimestamp();
 }
 
-// ─── Inventory Page Embed ─────────────────────────────────────────────────────
 
 export function buildInventoryEmbed(
   username: string,
@@ -193,7 +185,6 @@ export function buildInventoryEmbed(
     .setTimestamp();
 }
 
-// ─── Profile Embed ────────────────────────────────────────────────────────────
 
 export function buildProfileEmbed(
   username: string,
@@ -248,7 +239,6 @@ export function buildProfileEmbed(
     .setTimestamp();
 }
 
-// ─── XP Progress Bar ──────────────────────────────────────────────────────────
 
 function buildXPBar(current: number, max: number): string {
   const safeMax = Math.max(max, 1);
@@ -258,7 +248,6 @@ function buildXPBar(current: number, max: number): string {
   return `[${"█".repeat(filled)}${"░".repeat(empty)}] ${percent}%`;
 }
 
-// ─── Leaderboard Embed ────────────────────────────────────────────────────────
 
 export function buildLeaderboardEmbed(
   entries: Array<{ username: string; balance: number; level: number }>,
@@ -288,7 +277,6 @@ export function buildLeaderboardEmbed(
     .setTimestamp();
 }
 
-// ─── Cases List Embed ─────────────────────────────────────────────────────────
 
 export function buildCaseEmbed(caseData: Case): EmbedBuilder {
   const rarityInfo = caseData.rarityPools
