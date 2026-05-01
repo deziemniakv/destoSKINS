@@ -45,7 +45,6 @@ const opencase: Command = {
     await interaction.deferReply();
 
     try {
-      // ── Cooldown ──────────────────────────────────────────────────────────
       const { onCooldown, remaining } = checkCooldown(
         client,
         interaction.user.id,
@@ -67,7 +66,6 @@ const opencase: Command = {
         return;
       }
 
-      // ── Case Validation ───────────────────────────────────────────────────
       const caseId   = interaction.options.getString("case", true);
       const caseData = getCaseById(caseId);
 
@@ -78,7 +76,6 @@ const opencase: Command = {
         return;
       }
 
-      // ── User & Balance ────────────────────────────────────────────────────
       const user = UserRepository.findOrCreate(
         interaction.user.id,
         interaction.user.username
@@ -101,7 +98,6 @@ const opencase: Command = {
         return;
       }
 
-      // ── Confirmation ──────────────────────────────────────────────────────
       const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId("confirm_open")
@@ -131,7 +127,6 @@ const opencase: Command = {
         components: [confirmRow],
       });
 
-      // ── Await Button ──────────────────────────────────────────────────────
       try {
         const btn = await confirmMsg.awaitMessageComponent({
           componentType: ComponentType.Button,
@@ -166,14 +161,12 @@ const opencase: Command = {
         return;
       }
 
-      // ── Spinning Animation ────────────────────────────────────────────────
       await interaction.editReply({
         embeds: [buildSpinningEmbed(caseData)],
         components: [],
       });
       await new Promise((res) => setTimeout(res, 2000));
 
-      // ── Deduct Balance ────────────────────────────────────────────────────
       const newBalance   = user.balance - caseData.price;
       const newTotalSpent = user.totalSpent + caseData.price;
 
@@ -185,11 +178,9 @@ const opencase: Command = {
       );
       UserRepository.incrementCasesOpened(interaction.user.id);
 
-      // ── Roll Item ─────────────────────────────────────────────────────────
       const droppedItem = openCase(caseData);
 
       if (!droppedItem) {
-        // Refund
         UserRepository.updateBalance(
           interaction.user.id,
           user.balance,
@@ -202,13 +193,10 @@ const opencase: Command = {
         return;
       }
 
-      // ── Save Item to Inventory ────────────────────────────────────────────
       UserRepository.addInventoryItem(interaction.user.id, droppedItem);
 
-      // ── Grant XP ──────────────────────────────────────────────────────────
       UserRepository.addXP(interaction.user.id, XP_PER_OPEN);
 
-      // ── Result ────────────────────────────────────────────────────────────
       const resultEmbed = buildOpeningEmbed(
         caseData,
         droppedItem,
@@ -237,7 +225,6 @@ const opencase: Command = {
         `[CASE] ${interaction.user.username} opened ${caseData.name} → ${droppedItem.name} (${droppedItem.rarity})`
       );
 
-      // ── Quick Sell ────────────────────────────────────────────────────────
       try {
         const sellBtn = await (
           await interaction.fetchReply()
