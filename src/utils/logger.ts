@@ -3,14 +3,12 @@ import path from "path";
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
-// ─── Custom Format ────────────────────────────────────────────────────────────
 
 const customFormat = printf(({ level, message, timestamp: ts, stack }) => {
   const base = `[${ts}] [${level.toUpperCase()}]: ${message}`;
   return stack ? `${base}\n${stack}` : base;
 });
 
-// ─── Logger Instance ──────────────────────────────────────────────────────────
 
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL ?? "info",
@@ -20,7 +18,6 @@ export const logger = winston.createLogger({
     customFormat
   ),
   transports: [
-    // Console output with colors
     new winston.transports.Console({
       format: combine(
         colorize({ all: true }),
@@ -29,14 +26,12 @@ export const logger = winston.createLogger({
         customFormat
       ),
     }),
-    // Error log file
     new winston.transports.File({
       filename: path.join("logs", "error.log"),
       level: "error",
       maxsize: 5 * 1024 * 1024, // 5MB
       maxFiles: 5,
     }),
-    // Combined log file
     new winston.transports.File({
       filename: path.join("logs", "combined.log"),
       maxsize: 10 * 1024 * 1024, // 10MB
@@ -55,7 +50,6 @@ export const logger = winston.createLogger({
   ],
 });
 
-// ─── Helper Functions ─────────────────────────────────────────────────────────
 
 export const log = {
   info: (message: string, ...meta: unknown[]) =>
